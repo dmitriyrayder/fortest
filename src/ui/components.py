@@ -110,16 +110,25 @@ def show_forecast_statistics(filtered_df, forecast, forecast_days, magazin, segm
         )
 
 
+def render_data_source_selector():
+    """Отрисовывает селектор источника данных"""
+    st.markdown("## 📊 Источник данных")
+
+    data_source = st.radio(
+        "Выберите источник данных:",
+        options=["📁 Excel файл", "🗄️ SQL Server БД"],
+        index=0,
+        key="data_source",
+        help="Выберите откуда загрузить данные"
+    )
+
+    return data_source
+
+
 def render_sidebar(df=None):
     """Отрисовывает боковую панель с настройками"""
     with st.sidebar:
         st.markdown("## ⚙️ Настройки")
-
-        uploaded_file = st.file_uploader(
-            "📁 Загрузите Excel файл",
-            type=['xlsx', 'xls'],
-            help="Файл должен содержать колонки: Magazin, Datasales, Art, Describe, Model, Segment, Price, Qty, Sum"
-        )
 
         st.markdown("---")
         st.markdown("### 🔧 Параметры прогноза")
@@ -162,16 +171,19 @@ def render_sidebar(df=None):
         else:
             smooth_window = 7
 
-    return uploaded_file, forecast_days, remove_outliers, smooth_method, smooth_window
+    return forecast_days, remove_outliers, smooth_method, smooth_window
 
 
-def show_welcome_screen():
+def show_welcome_screen(data_source="📁 Excel файл"):
     """Экран приветствия при отсутствии данных"""
-    st.info("👈 Загрузите Excel файл для начала работы")
+    if data_source == "📁 Excel файл":
+        st.info("👈 Загрузите Excel файл для начала работы")
+    else:
+        st.info("👈 Настройте подключение к SQL Server БД")
 
     st.markdown("### 📋 Требования к данным")
     st.markdown("""
-    Файл должен содержать следующие колонки:
+    Данные должны содержать следующие колонки:
     - **Magazin**: Название магазина
     - **Datasales**: Дата продажи
     - **Art**: Артикул товара

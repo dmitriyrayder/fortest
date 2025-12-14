@@ -11,7 +11,17 @@ warnings.filterwarnings('ignore')
 from src.config.styles import CSS_STYLES
 from src.config.settings import PAGE_CONFIG
 from src.utils.file_loader import load_and_validate_data
-from src.ui.components import show_data_statistics, render_sidebar, show_welcome_screen
+from src.utils.database_loader import (
+    render_database_connection_ui,
+    load_from_database,
+    validate_database_data
+)
+from src.ui.components import (
+    show_data_statistics,
+    render_sidebar,
+    show_welcome_screen,
+    render_data_source_selector
+)
 from src.ui.tabs.forecast_tab import render_forecast_tab
 from src.ui.tabs.analytics_tab import render_analytics_tab
 from src.ui.tabs.abc_xyz_tab import render_abc_xyz_tab
@@ -36,18 +46,40 @@ def main():
     if 'selected_segment' not in st.session_state:
         st.session_state.selected_segment = 'Все сегменты'
 
-    # Рендер боковой панели
-    uploaded_file, forecast_days, remove_outliers, smooth_method, smooth_window = render_sidebar()
+    # Выбор источника данных
+    data_source = render_data_source_selector()
 
-    # Проверка наличия загруженного файла
-    if uploaded_file is None:
-        show_welcome_screen()
-        return
+    st.markdown("---")
 
-    # Загрузка данных
-    df = load_and_validate_data(uploaded_file)
+    # Загрузка данных в зависимости от источника
+    df = None
 
+    if data_source == "📁 Excel файл":
+        # Excel файл
+        uploaded_file = st.file_uploader(
+            "📁 Загрузите Excel файл",
+            type=['xlsx', 'xls'],
+            help="Файл должен содержать колонки: Magazin, Datasales, Art, Describe, Model, Segment, Price, Qty, Sum"
+        )
+
+        if uploaded_file is not None:
+            df = load_and_validate_data(uploaded_file)
+
+    else:
+        # SQL Server БД
+        db_config = render_database_connection_ui()
+
+        if st.button("🔌 Подключиться к БД", type="primary", use_container_width=True):
+            df_raw, success = load_from_database(db_config)
+            if success and df_raw is not None:
+                df = validate_database_data(df_raw)
+
+    # Рендер боковой панели с параметрами
+    forecast_days, remove_outliers, smooth_method, smooth_window = render_sidebar()
+
+    # Проверка наличия данных
     if df is None:
+        show_welcome_screen(data_source)
         return
 
     # Статистика данных
