@@ -14,6 +14,8 @@ from src.utils.file_loader import load_and_validate_data
 from src.ui.components import show_data_statistics, render_sidebar, show_welcome_screen
 from src.ui.tabs.forecast_tab import render_forecast_tab
 from src.ui.tabs.analytics_tab import render_analytics_tab
+from src.ui.tabs.abc_xyz_tab import render_abc_xyz_tab
+from src.ui.tabs.elasticity_tab import render_elasticity_tab
 
 
 def main():
@@ -54,9 +56,11 @@ def main():
     st.markdown("---")
 
     # Система вкладок
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📈 Прогнозирование",
         "📊 Аналитика",
+        "🎯 ABC/XYZ Анализ",
+        "💹 Эластичность",
         "📋 Данные"
     ])
 
@@ -83,8 +87,24 @@ def main():
             st.session_state.selected_segment
         )
 
-    # Вкладка 3: Данные
+    # Вкладка 3: ABC/XYZ Анализ
     with tab3:
+        render_abc_xyz_tab(
+            df,
+            st.session_state.selected_magazin,
+            st.session_state.selected_segment
+        )
+
+    # Вкладка 4: Анализ эластичности
+    with tab4:
+        render_elasticity_tab(
+            df,
+            st.session_state.selected_magazin,
+            st.session_state.selected_segment
+        )
+
+    # Вкладка 5: Данные
+    with tab5:
         st.markdown("## 📋 Просмотр загруженных данных")
 
         # Фильтры
